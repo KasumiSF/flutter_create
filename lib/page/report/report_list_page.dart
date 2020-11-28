@@ -1,11 +1,14 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_create/page/report/ClothingNumber.dart';
 import 'package:flutter_create/page/report/report_add_page.dart';
 import 'package:flutter_create/util/DbUtils.dart';
+import 'package:flutter_create/util/Loading.dart';
 import 'package:flutter_create/util/PictureSizeChange.dart';
+import 'package:flutter_create/util/ReadFile.dart';
 //import 'package:flutter_create/util/SharedPreferenceUtil.dart';
 import 'package:flutter_create/zcui/widgets/zcw_index.dart';
 import 'package:flutter_create/zcui/event/dialog/zce_ShowDialog.dart';
@@ -74,19 +77,25 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
     listClothingNumber =await DbUtils.dbUtils.queryItems(ClothingNumber());
     setState(() {
       FSList = [];
-      FSBool = false;
+
     });
 
     if(listClothingNumber != null){
       for (int i = 0 ; i< listClothingNumber.length ; i++) {
         ClothingNumber cn =listClothingNumber[i];
         Map map = cn.toJson();
+        Image image = await ReadFile.getPicFile(map['PPHH'] );
+        map['PicImage'] = image;
         setState(() {
           FSList.add(map);
         });
 
       }
     }
+
+    setState(() {
+      FSBool = false;
+    });
 
   }
 
@@ -132,9 +141,17 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
           body: CustomScrollView(physics: ScrollPhysics(), slivers: <Widget>[
             FSBool
                 ? SliverToBoxAdapter(
-                    child: Center(
-                    child: Text("正在加载！", style: TextStyle(fontSize: 16)),
-                  ))
+                    child: Column(
+                      children: <Widget>[
+                        Container(
+                          padding: EdgeInsets.all(20),
+                          child: Center(
+                            child: Loading(color: Colors.blue, size: 60.0,lineWidth:5),
+                  ),
+                        ),
+                        Text("正在加载！", style: TextStyle(fontSize: 16)),
+                      ],
+                    ))
                 : FSList.length > 0
                     ? SliverList(
                         delegate: SliverChildBuilderDelegate(
@@ -146,16 +163,8 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
                             ),
                             onTap: () {
 
-                              tanchuang(FSList[index]['PicPath']);
-                              //设置要展示的图片
-//                              ReportAddPage_PicPath =
-//                                  FSList[index]['imagepath'];
-//                              Navigator.push(
-//                                  context,
-//                                  new MaterialPageRoute(
-//                                      builder: (BuildContext context) =>
-//                                          ReportInfoPage(
-//                                              huohao: FSList[index]['title'])));
+                              tanchuang(FSList[index]);
+
                             },
                           );
                         },
@@ -214,16 +223,17 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
   }
 
   //弹出大图
-  tanchuang(String imagepath){
+  tanchuang(Map image){
+    //先通过地址拿到文件，再打开图片
+//    image['PicPath'];
+//    Uint8List outputAsUint8List = new Uint8List.fromList(image['Pic'].codeUnits);
+
     showDialog(context:context,
         child:Material(
           type: MaterialType.transparency,
           child: GestureDetector(
-            child: Photo(url: File(imagepath)),
-//              Image.file(
-//              File(imagepath),
-//              fit: BoxFit.contain,
-//            ),
+            child: Photo(image: image['PicImage']),
+
             onTap: (){
               Navigator.pop(context);
             },
@@ -295,9 +305,7 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
               ),
             ),
             onTap: () {
-              //设置要展示的图片
-              ReportAddPage_PicPath =
-                  FSList[index]['PicPath'];
+
               Navigator.push(
                   context,
                   new MaterialPageRoute(
@@ -428,8 +436,8 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
 //                FSListlength -=1;
                 init();
               });
-
-
+              //删除本地文件
+              ReadFile.deleteFile(data['PPHH']);
               zce_ShowDialog().zfe_SuccessDialog_show(context, '删除成功！');
             },
           ),
@@ -559,10 +567,7 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
             margin: EdgeInsets.only(left: 10),
             child: new ClipRRect(
               borderRadius: BorderRadius.all(Radius.circular(3)),
-              child: Image.file(
-                File(data['PicPath']),
-                fit: BoxFit.contain,
-              ),
+              child: data['PicImage'],
             ),
 //            zcw_Image(
 //                borderRadius: BorderRadius.all(Radius.circular(3)),
@@ -745,7 +750,7 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
     List<ClothingNumber> listClothingNumber =await DbUtils.dbUtils.queryItems(ClothingNumber());
     setState(() {
       FSList = [];
-      FSBool = false;
+      FSBool = true;
     });
     List<Map> list = [];
     for (ClothingNumber cn in listClothingNumber) {
@@ -760,33 +765,15 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
     for(Map hhs in list){
       bool isABC = regExp.hasMatch(hhs['PPHH']);
       if(isABC){
+        Image image = await ReadFile.getPicFile(hhs['PPHH'] );
+        hhs['PicImage'] = image;
         FSList.add(hhs);
       }
     }
 
-//    if(HHlist.length == 0){
-//      return;
-//    }
-//
-//    print(HHlist);
-//    for (String title in HHlist) {
-//      String data = await SharedPreferenceUtil.getString(title);
-//      if (data != null && data.contains(',')) {
-//        List dataList = data.split(',');
-//        setState(() {
-//            FSList.add({
-//              "title": title,
-//              "huohao":dataList[0],
-//              "pinpai":dataList[1],
-//              "imagepath": dataList[2],
-//              "money": dataList[3],
-//              "money2": dataList[4],
-//              "state": dataList[5]
-//            });
-//
-//        });
-//      }
-//    }
+    setState(() {
+      FSBool = false;
+    });
 
 
   }

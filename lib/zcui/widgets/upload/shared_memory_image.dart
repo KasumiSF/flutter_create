@@ -1,14 +1,20 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_create/page/report/report_add_page.dart';
+import 'package:flutter_create/util/ReadFile.dart';
 import '../base/zcw_Image.dart';
 import '../../event/zce_Toast.dart';
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 
-class shared_preferences_upload_image extends StatefulWidget {
+class shared_memory_image extends StatefulWidget {
+  Image image;
 
+shared_memory_image({
+  this.image
+});
 
   @override
   State<StatefulWidget> createState() {
@@ -17,7 +23,7 @@ class shared_preferences_upload_image extends StatefulWidget {
   }
 }
 
-class _zcw_UploadImage_view extends State<shared_preferences_upload_image> {
+class _zcw_UploadImage_view extends State<shared_memory_image> {
   int number = 1;
   int widthpadding = 30;
   double mainAxisSpacing = 20;
@@ -31,70 +37,33 @@ class _zcw_UploadImage_view extends State<shared_preferences_upload_image> {
 
 
   @override
-  void initState() {
-    if(ReportAddPage_PicPath != null && ReportAddPage_PicPath != ""){
+  Future<void> initState() {
+    print('正在加载');
+    if(widget.image != null){
       setState(() {
-        imagelist = [{
-          'key': imgkey,
-          'status': 1,
-          'schedule': 0,
-          'imagepath':ReportAddPage_PicPath,
-        }];
+        imagelist = [widget.image];
         imgkey = imgkey + 1;
+
       });
 
     }
   }
-  //  void upload_file(File file) async {
-//    Dio dio = new Dio();
-//    FormData formData = new FormData.from({
-//      "uploadFile": new UploadFileInfo(file,'')
-//    });
-//    try {
-//      dio.options.connectTimeout = 5000; //5s
-//      Response response;
-//      int statusCode;
-//      response = await dio.post(uploadpath, data: formData,
-//        onSendProgress: (int sent, int total) {
-//          double zhi = sent/total;
-//          setState(() {
-//            if(zhi==1.0){
-//              schedule = "100%";
-//            }else{
-//              schedule = zhi.toString().substring(2,4)+"%";
-//            }
-//          });
-//        },
-//      );
-//      statusCode = response.statusCode;
-//      if(statusCode <0){
-//        print('服务启动异常！');
-//        return null;
-//      }else{
-//        Map result = {"imgurl":response.data['imgurl'].toString(),"videourl":response.data['videourl'].toString(),"playinfo":response.data['videoinfo']};
-//        // 下载视频预览图
-//      }
-//    } catch (e) {
-//      print(e);
-//    }
-//  }
 
 
 
   Future getImage() async {
-    File image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    File imageFile = await ImagePicker.pickImage(source: ImageSource.gallery);
 //    upload_file(image);
-    if(image == null){
+    if(imageFile == null){
       return;
     }
-    ReportAddPage_PicPath = image.path;
+    ReportAddPage_PicPath = imageFile.path;
+
+
+
+    widget.image = Image.file(imageFile);
     setState(() {
-      imagelist = [{
-        'key': imgkey,
-        'status': 1,
-        'schedule': 0,
-        'imagepath': image.path,
-      }];
+      imagelist = [widget.image];
       imgkey = imgkey + 1;
     });
   }
@@ -135,7 +104,7 @@ class _zcw_UploadImage_view extends State<shared_preferences_upload_image> {
           (context, index) {
             return imagelist.length == index
                 ? addnewImage()
-                : showImage(imagelist[index], index);
+                : showImage(imagelist, index);
           },
           childCount: imagelist.length + 1,
         ),
@@ -144,6 +113,7 @@ class _zcw_UploadImage_view extends State<shared_preferences_upload_image> {
   }
 
   Widget showImage(image, int index) {
+
 //    print('11111111111111111111'+image['imagepath']);
     return Container(
       color: Color(0xffDEEFFF),
@@ -160,55 +130,16 @@ class _zcw_UploadImage_view extends State<shared_preferences_upload_image> {
                 Container(
                     height: itemheight,
 //                    width: itemheight,
-                    child:
-                    Image.file(
-                      File(image['imagepath']),
-                      fit: BoxFit.contain,
-                    )
+                    child:widget.image,
+//                    Image.memory(new Uint8List.fromList(image[index].codeUnits),
+//                      fit: BoxFit.contain,
+//                    )
 //                    zcw_Image(
 //                      imgurl: image['imagepath'],
 //                      boxfit: BoxFit.cover,
 //                      )
                 ),
-//                new Opacity(
-//                    opacity: 0.3,
-//                    child: new Container(
-//                        decoration: new BoxDecoration(
-//                            // borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20),bottomRight: Radius.circular(20)),
-//                            color: Color(0xff000000)))),
-//                Container(
-//                  child: Column(
-//                    children: <Widget>[
-//                      Expanded(
-//                        flex: 1,
-//                        child: Container(),
-//                      ),
-//                      Container(
-//                        margin: EdgeInsets.only(bottom: 6),
-//                        child: Text(
-//                          "13%",
-//                          style: TextStyle(color: Colors.white),
-//                        ),
-//                      ),
-//                      Container(
-//                        child: new LinearProgressIndicator(
-//                          backgroundColor: Colors.white,
-//                          value: 0.2,
-//                          valueColor:
-//                              new AlwaysStoppedAnimation<Color>(Colors.blue),
-//                        ),
-//                        height: 5,
-//                        padding: EdgeInsets.only(left: 3, right: 3),
-//                        decoration: new BoxDecoration(
-//                            borderRadius: BorderRadius.all(Radius.circular(1))),
-//                      ),
-//                      Expanded(
-//                        flex: 1,
-//                        child: Container(),
-//                      ),
-//                    ],
-//                  ),
-//                )
+
               ],
             ),
           ),

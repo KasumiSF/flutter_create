@@ -1,6 +1,10 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_create/util/DbUtils.dart';
 import 'package:flutter_create/util/Material.dart';
+import 'package:flutter_create/util/ReadFile.dart';
 //import 'package:flutter_create/util/SharedPreferenceUtil.dart';
 import 'package:flutter_create/zcui/event/dialog/zce_ShowDialog.dart';
 import 'package:flutter_create/zcui/widgets/upload/shared_preferences_upload_image.dart';
@@ -67,50 +71,6 @@ class _ReportAddPage extends State<ReportAddPage> {
               zce_Toast.toast(context, "必须输入品牌");
             }
             PPHH = PinPai + HuoHao;
-
-//            print(PinPai +
-//                ',' +
-//                HuoHao +
-//                ',' +
-//                ReportAddPage_PicPath +
-//                "," +
-//                JG1 +
-//                "," +
-//                JG2);
-//            //先查看已保存的货号，然后再在此基础上增加新的货号
-//            String FS = await SharedPreferenceUtil.getString("所有货号");
-//            if (FS != null) {
-//              //判断当前货号是否有重复的
-//              List<String> FSList = FS.split(',');
-//              for (String s in FSList) {
-//                if (s == PPHH) {
-//                  zce_Toast.toast(context, "该货号已保存，请勿重复添加");
-//                  return;
-//                }
-//              }
-//              SharedPreferenceUtil.setString(
-//                  "所有货号", FS.toString() + "," + PPHH);
-//            } else {
-//              SharedPreferenceUtil.setString("所有货号", PPHH);
-//            }
-//            //保存该货号的相关信息
-//            SharedPreferenceUtil.setString(
-//                PPHH,
-//                PinPai +
-//                    ',' +
-//                    HuoHao +
-//                    ',' +
-//                    ReportAddPage_PicPath +
-//                    "," +
-//                    JG1 +
-//                    "," +
-//                    JG2 +
-//                    ",0");
-////                SharedPreferenceUtil.setString(PPHH,ReportAddPage_PicPath+","+JG1+","+JG2);
-//
-//            print(ReportAddPage_PicPath + "," + JG1 + "," + JG2 + ",0");
-//            zce_Toast.toast(context, "保存成功！");
-//            print(await SharedPreferenceUtil.getString("所有货号"));
 
             addData(PPHH, PinPai, HuoHao, ReportAddPage_PicPath, JG1, JG2, "0");
 
@@ -273,11 +233,21 @@ class _ReportAddPage extends State<ReportAddPage> {
 
       return;
     }
+
+    Uint8List  u8l = await File(PicPath).readAsBytes();
+
+    String s = new String.fromCharCodes(u8l);
+
+    //保存的照片地址
+    String newPicPath = await ReadFile.getAndSetPicFile2(PPHH.trim(),s);
+
+    //    Uint8List outputAsUint8List = new Uint8List.fromList(s.codeUnits);
+
     ClothingNumber clothingNumber = ClothingNumber(
-        PPHH: PPHH,
-        PinPai: PinPai,
-        HuoHao: HuoHao,
-        PicPath: PicPath,
+        PPHH: PPHH.trim(),
+        PinPai: PinPai.trim(),
+        HuoHao: HuoHao.trim(),
+//        PicPath: newPicPath,
         JG1: JG1,
         JG2: JG2,
         State: State);

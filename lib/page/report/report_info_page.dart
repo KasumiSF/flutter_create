@@ -1,8 +1,13 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_create/page/report/ClothingNumber.dart';
 import 'package:flutter_create/page/report/report_add_page.dart';
 import 'package:flutter_create/util/DbUtils.dart';
 import 'package:flutter_create/util/Material.dart';
+import 'package:flutter_create/util/ReadFile.dart';
+import 'package:flutter_create/zcui/widgets/upload/shared_memory_image.dart';
 //import 'package:flutter_create/util/SharedPreferenceUtil.dart';
 import 'package:flutter_create/zcui/widgets/upload/shared_preferences_upload_image.dart';
 import '../../zcui/event/zce_Toast.dart';
@@ -35,6 +40,8 @@ class _ReportInfoPage extends State<ReportInfoPage> {
   String PinPai = "";
   //货号
   String HuoHao = "";
+  //图片
+  String PicPath = "";
   //价格1
   String JG1 = "";
   //价格2
@@ -52,19 +59,16 @@ class _ReportInfoPage extends State<ReportInfoPage> {
 
   init() async {
     PPHH = widget.FS['PPHH'];
-//      SharedPreferenceUtil.setString(HuoHao,"456");
-//    String FS = await SharedPreferenceUtil.getString(PPHH);
-      List<ClothingNumber> listClothingNumber =await DbUtils.dbUtils.queryItems(ClothingNumber());
+
       setState(() {
-//          JG1.text = FS.toString();
+
         PinPai = widget.FS['PinPai'];
         HuoHao = widget.FS['HuoHao'];
-        ReportAddPage_PicPath = widget.FS['PicPath'];
+
+//        Uint8List_Pic = widget.FS['Pic'];
         JG1 = widget.FS['JG1'];
         JG2 = widget.FS['JG2'];
-//        if(FSList.length>5){
-//          state = FSList[5];
-//        }
+
 
       });
 
@@ -111,47 +115,7 @@ class _ReportInfoPage extends State<ReportInfoPage> {
               zce_Toast.toast(context, "必须输入品牌");
             }
             PPHH = PinPai+HuoHao;
-//            print(ReportAddPage_PicPath + "," + JG1 + "," + JG2);
-//            //先查看已保存的货号，然后再在此基础上增加新的货号
-//            String FS = await SharedPreferenceUtil.getString("所有货号");
-//            if (FS != null) {
-//              //判断当前货号是否有重复的
-//              List<String> FSList = FS.split(',');
-//
-//              /**判断现在跳转传入的和修改后的是否相同；
-//              *    不相同则先判断，修改后是否已经存在，
-//              *        如果存在则提示，并跳过修改
-//              *        如果不存在，则删除原来的，添加新的
-//              *    相同则不需要操作
-//               */
-//              String newFS = "";
-//              for (String PPHHs in FSList) {
-//                //判断现在跳转传入的和修改后的是否相同
-//                if(widget.PPHH != PPHH){
-//                  //如果不相同，则剔除原来的，只保留新的
-//                  if(PPHHs != widget.PPHH){
-//                    newFS += PPHHs+ ",";
-//                  }
-//                  if (PPHHs == PPHH) {
-//                    zce_Toast.toast(context, "该货号已保存，请勿重复添加");
-//                    return;
-//                  }
-//                }
-//
-//              }
-//              if(widget.PPHH != PPHH){
-//                //如果循环正常结束,说明修改后的货号,不重复
-//                newFS += PPHH;
-//              }
-//
-//            }
-//            //保存该货号的相关信息
-//            SharedPreferenceUtil.setString(
-//                PPHH,PinPai+','+HuoHao+','+ReportAddPage_PicPath + "," + JG1 + "," + JG2+","+state);
-//
-//            print(PinPai+','+HuoHao+','+ReportAddPage_PicPath + "," + JG1 + "," + JG2+","+state);
-//            zce_Toast.toast(context, "保存成功！");
-//            print(await SharedPreferenceUtil.getString("所有货号"));
+
             addData(widget.FS['PPHH'],PPHH, PinPai, HuoHao, ReportAddPage_PicPath, JG1, JG2, state);
 //            Navigator.maybePop(context);
           },
@@ -195,7 +159,7 @@ class _ReportInfoPage extends State<ReportInfoPage> {
                     color: Color(0xff8485A6),
                   ),
                   Container(
-                    child: shared_preferences_upload_image(),
+                    child: shared_memory_image(image: widget.FS['PicImage']),
                   )
                 ],
               ),
@@ -307,11 +271,17 @@ class _ReportInfoPage extends State<ReportInfoPage> {
 
   Future<void> addData(oldPPHH, newPPHH, PinPai, HuoHao, PicPath, JG1, JG2, State) async {
 
+    Uint8List  u8l = await File(PicPath).readAsBytes();
+
+    String s = new String.fromCharCodes(u8l);
+
+    String newPicPath = await ReadFile.getAndSetPicFile2(newPPHH.trim(),s);
     ClothingNumber clothingNumber = ClothingNumber(
-        PPHH: newPPHH,
-        PinPai: PinPai,
-        HuoHao: HuoHao,
-        PicPath: PicPath,
+        PPHH: newPPHH.trim(),
+        PinPai: PinPai.trim(),
+        HuoHao: HuoHao.trim(),
+//        PicPath: PicPath,
+//        Pic: s,
         JG1: JG1,
         JG2: JG2,
         State: State);
@@ -332,6 +302,7 @@ class _ReportInfoPage extends State<ReportInfoPage> {
 
         await DbUtils.dbUtils.insertItem(clothingNumber);
         await DbUtils.dbUtils.deleteItem(ClothingNumber(),key:"PPHH",value: oldPPHH);
+        ReadFile.deleteFile(oldPPHH);
       }
     }
 

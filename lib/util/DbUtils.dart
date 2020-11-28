@@ -45,17 +45,34 @@ class DbUtils {
                   ', PinPai TEXT'+
                   ', HuoHao TEXT'+
                   ', PicPath TEXT'+
-//                  ', Pic BLOB'+
+                  ', Pic TEXT'+
                   ', JG1 TEXT'+
                   ', JG2 TEXT'+
                   ', State Text'+
                   ', CreateTime Text'+
-                  ', UpdateTime Text)');
+                  ', UpdateTime Text'+
+                  ', BY1 Text'+
+                  ', BY2 Text)');
           // 收货地址信息表
 //          await db.execute(
 //              'CREATE TABLE PickInfo (id TEXT PRIMARY KEY, userName TEXT, tel TEXT, receiver TEXT, province TEXT, city TEXT, county TEXT, address TEXT, status TEXT)');
-        }, onUpgrade: (Database db, int oldVersion, int newVersion) {
+        },
+        onUpgrade: (Database db, int oldVersion, int newVersion) async {
           // 版本更新可能牵扯到重新插入表、删除表、表中字段变更-具体更新相关sql语句进行操作
+          //更新表
+          await db.execute(
+              'CREATE TABLE ClothingStyle (PPHH TEXT PRIMARY KEY'+
+                  ', PinPai TEXT'+
+                  ', HuoHao TEXT'+
+                  ', PicPath TEXT'+
+                  ', Pic TEXT'+
+                  ', JG1 TEXT'+
+                  ', JG2 TEXT'+
+                  ', State Text'+
+                  ', CreateTime Text'+
+                  ', UpdateTime Text'+
+                  ', BY1 Text'+
+                  ', BY2 Text)');
         });
   }
 

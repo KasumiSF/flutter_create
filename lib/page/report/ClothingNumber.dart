@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_create/util/DbBaseBean.dart';
 
 class ClothingNumber extends DbBaseBean {
@@ -14,7 +16,7 @@ class ClothingNumber extends DbBaseBean {
   String PicPath = "";
 
   //图片
-  String Pic = "";
+  String Pic = '';
 
   //价格1
   String JG1 = "";
@@ -35,18 +37,22 @@ class ClothingNumber extends DbBaseBean {
   ClothingNumber(
       {this.tableName,
         this.PPHH,
-      this.PinPai,
-      this.HuoHao,
-      this.PicPath,
-      this.JG1,
-      this.JG2,
-      this.State});
+        this.PinPai,
+        this.HuoHao,
+        this.PicPath,
+        this.Pic,
+        this.JG1,
+        this.JG2,
+        this.State});
+
+
 
   ClothingNumber.fromJson(Map<String, dynamic> json) {
     PPHH = json['PPHH'];
     PinPai = json['PinPai'];
     HuoHao = json['HuoHao'];
     PicPath = json['PicPath'];
+    Pic = json['Pic'];
     JG1 = json['JG1'];
     JG2 = json['JG2'];
     State = json['State'];
@@ -57,6 +63,7 @@ class ClothingNumber extends DbBaseBean {
     PinPai = json['PinPai'];
     HuoHao = json['HuoHao'];
     PicPath = json['PicPath'];
+    Pic = json['Pic'];
     JG1 = json['JG1'];
     JG2 = json['JG2'];
     State = json['State'];
@@ -72,6 +79,21 @@ class ClothingNumber extends DbBaseBean {
     data['JG1'] = this.JG1;
     data['JG2'] = this.JG2;
     data['State'] = this.State;
+    data['Pic'] = this.Pic;
+    return data;
+  }
+
+  Map<String, dynamic> toJson2() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+
+    data['PPHH'] = this.PPHH;
+    data['PinPai'] = this.PinPai;
+    data['HuoHao'] = this.HuoHao;
+//    data['PicPath'] = this.PicPath;
+    data['JG1'] = this.JG1;
+    data['JG2'] = this.JG2;
+    data['State'] = this.State;
+//    data['Pic'] = this.Pic;
     return data;
   }
 

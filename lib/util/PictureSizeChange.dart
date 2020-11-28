@@ -1,56 +1,10 @@
 import 'package:flutter/material.dart';
 
 
-class PictureSizeChange extends StatefulWidget {
-  @override State<StatefulWidget> createState() {
-    return PictureSizeChangeState();
-  }
-}
-
-class PictureSizeChangeState extends State<PictureSizeChange> {
-  List<String> lists = [ ];
-
-  void showPhoto(BuildContext context, f, index) {
-    Navigator.push(
-        context, MaterialPageRoute<void>(builder: (BuildContext context) {
-      return Scaffold(
-        appBar: AppBar(title: Text('图片${index + 1}')),
-        body: SizedBox.expand(child: Hero(
-          tag: index,
-          child: new Photo(url: f),),),);
-    }));
-  }
-
-  @override Widget build(BuildContext context) {
-    return new Scaffold(appBar: AppBar(title: Text('PictureSizeChange'),),
-        body: new Column(children: <Widget>[ new Expanded(child: new SafeArea(
-          top: false,
-          bottom: false,
-          child: new GridView.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: 10.0,
-            crossAxisSpacing: 4.0,
-            padding: const EdgeInsets.all(4.0),
-            childAspectRatio: 1.5,
-            children: lists.map((f) {
-              return new GestureDetector(
-                onTap: () {
-                  var index;
-                  if (lists.contains(f)) {
-                    index = lists.indexOf(f);
-                  }
-                  showPhoto(context, f, index);
-                }, child: Image.network(f, fit: BoxFit.cover,),);
-            }).toList(),),),)
-        ],));
-  }
-}
-
-
 //可以放大的图片
 class Photo extends StatefulWidget {
-  const Photo({Key key, this.url}) : super(key: key);
-  final url;
+  const Photo({Key key, this.image}) : super(key: key);
+  final image;
 
   @override State<StatefulWidget> createState() {
     return PhotoState();
@@ -130,10 +84,9 @@ class PhotoState extends State<Photo> with SingleTickerProviderStateMixin {
       child: ClipRect(child: Transform(transform: Matrix4.identity()
         ..translate(_offset.dx, _offset.dy)
         ..scale(
-            _scale), child: Image.file(
-        widget.url,
-        fit: BoxFit.contain,
-      ),
+            _scale), child:
+        widget.image,
+
 //        Image.network(widget.url, fit: BoxFit.cover,),),
 //        child: Image.network(widget.url,
 //          fit: BoxFit.cover,

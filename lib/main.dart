@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,12 +10,12 @@ import 'package:flutter_create/util/DbUtils.dart';
 import 'package:flutter_create/util/PictureSizeChange.dart';
 import 'package:flutter_create/util/SharedPreferenceUtil.dart';
 import 'package:flutter_create/zcui/event/dialog/zce_ShowDialog.dart';
-import 'package:path_provider/path_provider.dart';
+import 'util/ReadFile.dart';
 import 'page/topic/topic_list_page.dart';
 import 'page/report/report_index_page.dart';
-import 'page/report/xxx.dart';
-import 'package:fluwx/fluwx.dart' as fluwx;
 
+import 'package:fluwx/fluwx.dart' as fluwx;
+import 'dart:convert' as convert;
 
 void main() => runApp(MyApp());
 
@@ -176,7 +177,7 @@ class _IndexPage_view extends State<IndexPage>{
                           ),],
                       ),),
                     onTap: (){
-//                      _saveValue();
+                      _saveValue();
 //                      Navigator.push(context, new MaterialPageRoute(
 //                          builder: (BuildContext context) =>
 //                              MyHomePage()));
@@ -202,38 +203,41 @@ class _IndexPage_view extends State<IndexPage>{
                       ),),
                     onTap: () async {
 //                      await DbUtils.dbUtils.deleteItem(ClothingNumber());
-//                      _readContent();
+                      _readContent();
 //                      Navigator.push(context, new MaterialPageRoute(
 //                          builder: (BuildContext context) =>
 //                              MyHomePage()));
                     },
                   ),
+//                  GestureDetector(
+//                    child: Container(width: 70,height: 70,
+//                      margin: EdgeInsets.only(left: 25),
+//                      child: Center(child: Text("清空数据",style: TextStyle(color: Color(0xffffffff),fontSize: 15),)),
+//                      decoration: new BoxDecoration(
+//                        color: Color(0xff4AACF8),
+//                        borderRadius: BorderRadius.all(Radius.circular(50)),
+//                        boxShadow: <BoxShadow>[ //设置阴影
+//                          new BoxShadow(
+//                            color: Color(0xFF888888), //阴影颜色
+//                            //blurRadius: 8.0,
+//                            offset: Offset(0.0, 3.0),
+//                            // color: Color.fromRGBO(16, 20, 188, 1.0),
+//                            blurRadius: 7.0,
+//                            spreadRadius: -3.0, //阴影大小
+//                          ),],
+//                      ),),
+//                    onTap: () async {
+//                      await DbUtils.dbUtils.deleteItem(ClothingNumber());
+////                      _readContent();
+////                      Navigator.push(context, new MaterialPageRoute(
+////                          builder: (BuildContext context) =>
+////                              MyHomePage()));
+//                    },
+//                  ),
                 ],
               ),
             ),
-//            GestureDetector(
-//              child: Container(width: 70,height: 70,
-//                margin: EdgeInsets.only(left: 25),
-//                child: Center(child: Text("其他",style: TextStyle(color: Color(0xffffffff),fontSize: 15),)),
-//                decoration: new BoxDecoration(
-//                  color: Color(0xff4AACF8),
-//                  borderRadius: BorderRadius.all(Radius.circular(50)),
-//                  boxShadow: <BoxShadow>[ //设置阴影
-//                    new BoxShadow(
-//                      color: Color(0xFF888888), //阴影颜色
-//                      //blurRadius: 8.0,
-//                      offset: Offset(0.0, 3.0),
-//                      // color: Color.fromRGBO(16, 20, 188, 1.0),
-//                      blurRadius: 7.0,
-//                      spreadRadius: -3.0, //阴影大小
-//                    ),],
-//                ),),
-//              onTap: (){
-//                Navigator.push(context, new MaterialPageRoute(
-//                    builder: (BuildContext context) =>
-//                        PictureSizeChange()));
-//              },
-//            ),
+
           ],
         ),
       ),
@@ -242,11 +246,34 @@ class _IndexPage_view extends State<IndexPage>{
 
   void _saveValue() async {
     try {
-      File f = await _getLocalFile();
+      File f = await ReadFile.getLocalFile();
+
+      bool fExists = await f.exists();
+      if(fExists){
+        f.delete();
+      }
       IOSink slink = f.openWrite(mode: FileMode.append);
 
-      String content = await init();
-      slink.write(content);
+
+      List<ClothingNumber> listClothingNumber = [];
+      listClothingNumber =await DbUtils.dbUtils.queryItems(ClothingNumber());
+
+      slink.write('[');
+      if(listClothingNumber != null){
+        for (int i = 0 ; i< listClothingNumber.length ; i++) {
+          ClothingNumber cn =listClothingNumber[i];
+          Map map = cn.toJson2();
+          slink.write(convert.jsonEncode(map));
+
+          if(i < listClothingNumber.length -1){
+            slink.write(',');
+          }
+        }
+      }
+
+      slink.write(']');
+
+      zce_ShowDialog().zfe_SuccessDialog_show(context, '保存成功！');
       // await fs.writeAsString('$value');
 
       slink.close();
@@ -256,78 +283,30 @@ class _IndexPage_view extends State<IndexPage>{
     }
   }
 
-  /**
-   * 此方法返回本地文件地址
-   */
-  Future<File> _getLocalFile() async {
-    // 获取文档目录的路径
-    Directory appDocDir = await getExternalStorageDirectory();
-    String dir = appDocDir.path;
-    final file = new File('$dir/服装款号备份数据.txt');
-    print(file);
-    return file;
-  }
 
-  Future<String> init() async {
 
-    String FS = await SharedPreferenceUtil.getString("所有货号");
-    //保存所有货号对应的数据
-    String data = '';
-
-    print(FS);
-    List list = [];
-    if (FS != null) {
-      //判断当前货号是否有重复的
-      setState(() {
-        if (FS.contains(',')) {
-          list = FS.split(',');
-        }
-
-        if (list.length == 0) {
-          list.add(FS);
-        }
-      });
-
-      for (String s in list) {
-        data += await SharedPreferenceUtil.getString(s)+';';
-
-      }
-    }
-    print(FS+';'+data);
-    zce_ShowDialog().zfe_SuccessDialog_show(context, '保存成功！');
-    return FS+';'+data;
-  }
+//  Future<String> init() async {
+//
+//
+//    return FS+';'+data;
+//  }
 
   void _readContent() async {
-    File file = await _getLocalFile();
+    File file = await ReadFile.getLocalFile();
     // 从文件中读取变量作为字符串，一次全部读完存在内存里面
     String contents = await file.readAsString();
     if(contents == null || contents.length == 0){
       return ;
     }
 
-    contents = contents.substring(0,contents.length-1);
-    print(contents);
-    if(contents.contains(';')){
-      List list = contents.split(';');
-      List HHList = [];
+    List listMap = json.decode(contents);
+    for(dynamic map in listMap){
+      print(map);
 
-      //获取货号
-      if(list[0].contains(',')){
-        HHList = list[0].split(',');
-      }else {
-        HHList.add(list[0]);
-      }
-      print('货号：'+HHList.toString());
-      print('数据：'+list.toString());
-      await SharedPreferenceUtil.setString("所有货号",list[0]);
-      //根据货号保存
-      for(int i = 1; i<list.length ; i++){
-        print(HHList[i-1]+'????'+list[i]);
-        await SharedPreferenceUtil.setString(HHList[i-1],list[i]);
-      }
+      await DbUtils.dbUtils.insertItem(ClothingNumber.fromJson(map));
     }
-    print(contents);
+
+    
 
     zce_ShowDialog().zfe_SuccessDialog_show(context, '读取成功！');
 
