@@ -43,7 +43,8 @@ dependencies:
   json_annotation: ^3.0.0
   analyzer: 0.38.2
 
-
+  cupertino_icons: ^0.1.0
+  package_info: ^0.4.0+13 #获取版本信息
 
 
 #  fluttertoast: ^3.1.3
