@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_create/util/DbUtils.dart';
 import 'package:flutter_create/util/Material.dart';
-import 'package:flutter_create/util/SharedPreferenceUtil.dart';
+//import 'package:flutter_create/util/SharedPreferenceUtil.dart';
+import 'package:flutter_create/zcui/event/dialog/zce_ShowDialog.dart';
 import 'package:flutter_create/zcui/widgets/upload/shared_preferences_upload_image.dart';
 import '../../zcui/event/zce_Toast.dart';
 import 'package:flutter_create/zcui/widgets/zcw_index.dart';
 
-String ReportAddPage_PicPath = "";
-class ReportAddPage extends StatefulWidget {
+import 'ClothingNumber.dart';
 
+String ReportAddPage_PicPath = "";
+
+class ReportAddPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
     return _ReportAddPage();
@@ -17,10 +21,19 @@ class ReportAddPage extends StatefulWidget {
 class _ReportAddPage extends State<ReportAddPage> {
   //用于保存列表用的所有Widget
   List<Widget> listWidget = new List();
+
+  //主键
+  String PPHH = "";
+
   //货号
-  String HH = "";
+  String HuoHao = "";
+
+  //品牌
+  String PinPai = "";
+
   //价格1
   String JG1 = "";
+
   //价格2
   String JG2 = "";
 
@@ -29,60 +42,80 @@ class _ReportAddPage extends State<ReportAddPage> {
     ReportAddPage_PicPath = null;
   } //照片地址
 
-
-
-
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: zfv_Appbar_topback(
         title: "新增款号",
         titleleft: 40,
         padding: EdgeInsets.only(left: 10, right: 10),
         rightw: GestureDetector(
-              child: Container(
-                padding: EdgeInsets.only(left:20,right: 5),
-                child: Text(
-                  "保存",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-              onTap: () async {
-                //先判空
-                if(HH.length == 0 ){
-                  zce_Toast.toast(context, "必须输入货号");
-
-                }
-
-                print(ReportAddPage_PicPath+","+JG1+","+JG2);
-                //先查看已保存的货号，然后再在此基础上增加新的货号
-                String FS = await SharedPreferenceUtil.getString("所有货号");
-                if(FS != null){
-                  //判断当前货号是否有重复的
-                  List<String> FSList = FS.split(',');
-                  for(String s in FSList){
-                    if(s == HH){
-                      zce_Toast.toast(context, "该货号已保存，请勿重复添加");
-                      return;
-                    }
-                  }
-                  SharedPreferenceUtil.setString("所有货号", FS.toString()+","+HH);
-                }else {
-                  SharedPreferenceUtil.setString("所有货号", HH);
-                }
-                //保存该货号的相关信息
-                SharedPreferenceUtil.setString(HH,ReportAddPage_PicPath+","+JG1+","+JG2+",0");
-//                SharedPreferenceUtil.setString(HH,ReportAddPage_PicPath+","+JG1+","+JG2);
-
-
-                print(ReportAddPage_PicPath+","+JG1+","+JG2+",0");
-                zce_Toast.toast(context, "保存成功！");
-                print(await SharedPreferenceUtil.getString("所有货号"));
-
-                Navigator.maybePop(context);
-              },
+          child: Container(
+            padding: EdgeInsets.only(left: 20, right: 5),
+            child: Text(
+              "保存",
+              style: TextStyle(fontSize: 16, color: Colors.white),
             ),
+          ),
+          onTap: () async {
+            FocusScope.of(context).requestFocus(FocusNode());
+            //先判空
+            if (HuoHao.length == 0) {
+              zce_Toast.toast(context, "必须输入货号");
+            }
+            if (PinPai.length == 0) {
+              zce_Toast.toast(context, "必须输入品牌");
+            }
+            PPHH = PinPai + HuoHao;
+
+//            print(PinPai +
+//                ',' +
+//                HuoHao +
+//                ',' +
+//                ReportAddPage_PicPath +
+//                "," +
+//                JG1 +
+//                "," +
+//                JG2);
+//            //先查看已保存的货号，然后再在此基础上增加新的货号
+//            String FS = await SharedPreferenceUtil.getString("所有货号");
+//            if (FS != null) {
+//              //判断当前货号是否有重复的
+//              List<String> FSList = FS.split(',');
+//              for (String s in FSList) {
+//                if (s == PPHH) {
+//                  zce_Toast.toast(context, "该货号已保存，请勿重复添加");
+//                  return;
+//                }
+//              }
+//              SharedPreferenceUtil.setString(
+//                  "所有货号", FS.toString() + "," + PPHH);
+//            } else {
+//              SharedPreferenceUtil.setString("所有货号", PPHH);
+//            }
+//            //保存该货号的相关信息
+//            SharedPreferenceUtil.setString(
+//                PPHH,
+//                PinPai +
+//                    ',' +
+//                    HuoHao +
+//                    ',' +
+//                    ReportAddPage_PicPath +
+//                    "," +
+//                    JG1 +
+//                    "," +
+//                    JG2 +
+//                    ",0");
+////                SharedPreferenceUtil.setString(PPHH,ReportAddPage_PicPath+","+JG1+","+JG2);
+//
+//            print(ReportAddPage_PicPath + "," + JG1 + "," + JG2 + ",0");
+//            zce_Toast.toast(context, "保存成功！");
+//            print(await SharedPreferenceUtil.getString("所有货号"));
+
+            addData(PPHH, PinPai, HuoHao, ReportAddPage_PicPath, JG1, JG2, "0");
+
+          },
+        ),
       ),
       body: ListView(
         children: <Widget>[
@@ -126,9 +159,31 @@ class _ReportAddPage extends State<ReportAddPage> {
                   )
                 ],
               ),
+              Container(width: double.infinity, child: Text('输入品牌')),
+              TextField(
+                controller: TextEditingController(text: PinPai),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: BorderSide(color: Colors.transparent)),
+                  //输入内容距离上下左右的距离 ，可通过这个属性来控制 TextField的高度
+                  contentPadding: EdgeInsets.all(10.0),
+                  fillColor: Colors.white,
+                  filled: true,
+                  //            labelText: 'Hello',
+                  // 以下属性可用来去除TextField的边框
+                  disabledBorder: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+//                keyboardType: TextInputType.number,
+                onChanged: (text) {
+                  PinPai = text;
+                },
+              ),
               Container(width: double.infinity, child: Text('输入货号')),
               TextField(
-                controller: TextEditingController(text:HH),
+                controller: TextEditingController(text: HuoHao),
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
@@ -145,8 +200,7 @@ class _ReportAddPage extends State<ReportAddPage> {
                 ),
                 keyboardType: TextInputType.number,
                 onChanged: (text) {
-
-                  HH = text;
+                  HuoHao = text;
                 },
               ),
               Container(width: double.infinity, child: Text('输入价格1(元)')),
@@ -176,7 +230,6 @@ class _ReportAddPage extends State<ReportAddPage> {
                   JG1 = r;
                 },
               ),
-
               Container(width: double.infinity, child: Text('输入价格2(元)')),
               TextField(
                 controller: TextEditingController(
@@ -209,6 +262,32 @@ class _ReportAddPage extends State<ReportAddPage> {
         ],
       ),
     );
+  }
+
+  Future<void> addData(PPHH, PinPai, HuoHao, PicPath, JG1, JG2, State) async {
+
+    //先判断当前PPHH有没有
+    List<ClothingNumber> list = await DbUtils.dbUtils.queryItems(ClothingNumber(),key:"PPHH",value: PPHH);
+    if(list != null && list.length>0){
+      zce_Toast.toast(context, "该货号已保存，请勿重复添加");
+
+      return;
+    }
+    ClothingNumber clothingNumber = ClothingNumber(
+        PPHH: PPHH,
+        PinPai: PinPai,
+        HuoHao: HuoHao,
+        PicPath: PicPath,
+        JG1: JG1,
+        JG2: JG2,
+        State: State);
+    await DbUtils.dbUtils.insertItem(clothingNumber);
+
+    print("===============插入成功================");
+    //关闭数据库
+//    await DbUtils.dbUtils.closeDb();
+
+    Navigator.maybePop(context);
   }
 
 //  List<Widget> ListWidget(int state) {

@@ -1,8 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_create/page/report/ClothingNumber.dart';
+import 'package:flutter_create/page/report/report_list_page.dart';
 import 'package:flutter_create/page/report/test/MyHomePage.dart';
 import 'package:flutter_create/page/topic/topic_create_page.dart';
+import 'package:flutter_create/util/DbUtils.dart';
+import 'package:flutter_create/util/PictureSizeChange.dart';
 import 'package:flutter_create/util/SharedPreferenceUtil.dart';
 import 'package:flutter_create/zcui/event/dialog/zce_ShowDialog.dart';
 import 'package:path_provider/path_provider.dart';
@@ -53,6 +57,7 @@ class _IndexPage_view extends State<IndexPage>{
 //    requestPermission();
     print(123);
     _initFluwx();
+
   }
 
   _initFluwx() async {
@@ -63,6 +68,10 @@ class _IndexPage_view extends State<IndexPage>{
         enableMTA: false);
     var result = await fluwx.isWeChatInstalled();
     print("is installed $result");
+
+    //初始化数据库
+    await DbUtils.getInstance().openDb("默认");
+
   }
 
   Future<void> initPlatformState() async {}
@@ -84,7 +93,7 @@ class _IndexPage_view extends State<IndexPage>{
                     child: Row(
                       children: <Widget>[
                         Container(width: 6,color: Colors.blue,margin: EdgeInsets.only(right: 15),),
-                        Text("选题",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w600),)
+                        Text("服装款式",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w600),)
                       ],
                     ),
                   )
@@ -125,7 +134,7 @@ class _IndexPage_view extends State<IndexPage>{
                   GestureDetector(
                     child: Container(width: 70,height: 70,
 //                      margin: EdgeInsets.only(left: 25),
-                      child: Center(child: Text("进货发货",style: TextStyle(color: Color(0xffffffff),fontSize: 15),)),
+                      child: Center(child: Text("服装款式",style: TextStyle(color: Color(0xffffffff),fontSize: 15),)),
                       decoration: new BoxDecoration(
                         color: Color(0xff4AACF8),
                         borderRadius: BorderRadius.all(Radius.circular(50)),
@@ -143,32 +152,10 @@ class _IndexPage_view extends State<IndexPage>{
                     onTap: (){
                       Navigator.push(context, new MaterialPageRoute(
                           builder: (BuildContext context) =>
-                              ReportIndexPage()));
+                              ReportListPage()));
                     },
                   ),
-//                  GestureDetector(
-//                    child: Container(width: 70,height: 70,
-//                      margin: EdgeInsets.only(left: 25),
-//                      child: Center(child: Text("其他",style: TextStyle(color: Color(0xffffffff),fontSize: 15),)),
-//                      decoration: new BoxDecoration(
-//                        color: Color(0xff4AACF8),
-//                        borderRadius: BorderRadius.all(Radius.circular(50)),
-//                        boxShadow: <BoxShadow>[ //设置阴影
-//                          new BoxShadow(
-//                            color: Color(0xFF888888), //阴影颜色
-//                            //blurRadius: 8.0,
-//                            offset: Offset(0.0, 3.0),
-//                            // color: Color.fromRGBO(16, 20, 188, 1.0),
-//                            blurRadius: 7.0,
-//                            spreadRadius: -3.0, //阴影大小
-//                          ),],
-//                      ),),
-//                    onTap: (){
-//                      Navigator.push(context, new MaterialPageRoute(
-//                          builder: (BuildContext context) =>
-//                              SendAuthPage()));
-//                    },
-//                  ),
+
 
 
                   GestureDetector(
@@ -189,7 +176,7 @@ class _IndexPage_view extends State<IndexPage>{
                           ),],
                       ),),
                     onTap: (){
-                      _saveValue();
+//                      _saveValue();
 //                      Navigator.push(context, new MaterialPageRoute(
 //                          builder: (BuildContext context) =>
 //                              MyHomePage()));
@@ -213,8 +200,9 @@ class _IndexPage_view extends State<IndexPage>{
                             spreadRadius: -3.0, //阴影大小
                           ),],
                       ),),
-                    onTap: (){
-                      _readContent();
+                    onTap: () async {
+//                      await DbUtils.dbUtils.deleteItem(ClothingNumber());
+//                      _readContent();
 //                      Navigator.push(context, new MaterialPageRoute(
 //                          builder: (BuildContext context) =>
 //                              MyHomePage()));
@@ -222,7 +210,30 @@ class _IndexPage_view extends State<IndexPage>{
                   ),
                 ],
               ),
-            )
+            ),
+//            GestureDetector(
+//              child: Container(width: 70,height: 70,
+//                margin: EdgeInsets.only(left: 25),
+//                child: Center(child: Text("其他",style: TextStyle(color: Color(0xffffffff),fontSize: 15),)),
+//                decoration: new BoxDecoration(
+//                  color: Color(0xff4AACF8),
+//                  borderRadius: BorderRadius.all(Radius.circular(50)),
+//                  boxShadow: <BoxShadow>[ //设置阴影
+//                    new BoxShadow(
+//                      color: Color(0xFF888888), //阴影颜色
+//                      //blurRadius: 8.0,
+//                      offset: Offset(0.0, 3.0),
+//                      // color: Color.fromRGBO(16, 20, 188, 1.0),
+//                      blurRadius: 7.0,
+//                      spreadRadius: -3.0, //阴影大小
+//                    ),],
+//                ),),
+//              onTap: (){
+//                Navigator.push(context, new MaterialPageRoute(
+//                    builder: (BuildContext context) =>
+//                        PictureSizeChange()));
+//              },
+//            ),
           ],
         ),
       ),

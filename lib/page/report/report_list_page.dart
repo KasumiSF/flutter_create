@@ -2,8 +2,11 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_create/page/report/ClothingNumber.dart';
 import 'package:flutter_create/page/report/report_add_page.dart';
-import 'package:flutter_create/util/SharedPreferenceUtil.dart';
+import 'package:flutter_create/util/DbUtils.dart';
+import 'package:flutter_create/util/PictureSizeChange.dart';
+//import 'package:flutter_create/util/SharedPreferenceUtil.dart';
 import 'package:flutter_create/zcui/widgets/zcw_index.dart';
 import 'package:flutter_create/zcui/event/dialog/zce_ShowDialog.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -12,10 +15,10 @@ import 'provide/report_list_provide.dart';
 import 'report_info_page.dart';
 
 class ReportListPage extends StatefulWidget {
-  final int status;
-
-  ReportListPage({this.status, Key key})
-      : super(key: key); //:assert(status!=null)
+//  final int status;
+//
+//  ReportListPage({this.status, Key key})
+//      : super(key: key); //:assert(status!=null)
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
@@ -23,8 +26,7 @@ class ReportListPage extends StatefulWidget {
   }
 }
 
-class ReportList_view extends State<ReportListPage>
-    with AutomaticKeepAliveClientMixin {
+class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClientMixin {
   static ReportListProvide reportListProvide = new ReportListProvide();
 
 //  var providers = null;
@@ -40,66 +42,52 @@ class ReportList_view extends State<ReportListPage>
   }
 
   List FSList = [];
+
 //  int FSListlength = 0;
 
   //正在读取数据标识符
   bool FSBool = true;
 
-  init() async {
+  //是否隐藏筛选页面
+  bool screen = false;
 
-    String FS = await SharedPreferenceUtil.getString("所有货号");
+  //以下是搜索使用
+  //主键
+  String PPHH = "";
+  //品牌
+  String PinPai = "";
+  //货号
+  String HuoHao = "";
+  //价格1
+  String JG1 = "";
+  //价格2
+  String JG2 = "";
+  //销售状态
+  String state = "0";
+
+  //输入框焦点
+  FocusNode _commentFocus = FocusNode();
+
+
+  init() async {
+    List<ClothingNumber> listClothingNumber = [];
+    listClothingNumber =await DbUtils.dbUtils.queryItems(ClothingNumber());
     setState(() {
       FSList = [];
-//      FSListlength = 0;
       FSBool = false;
     });
 
-    print(FS);
-    List list = [];
-    if (FS != null) {
-      //判断当前货号是否有重复的
-      setState(() {
-        if (FS.contains(',')) {
-          list = FS.split(',');
-        }
+    if(listClothingNumber != null){
+      for (int i = 0 ; i< listClothingNumber.length ; i++) {
+        ClothingNumber cn =listClothingNumber[i];
+        Map map = cn.toJson();
+        setState(() {
+          FSList.add(map);
+        });
 
-        if (list.length == 0) {
-          list.add(FS);
-        }
-      });
-      print(list);
-      for (String s in list) {
-        String data = await SharedPreferenceUtil.getString(s);
-        if (data != null && data.contains(',')) {
-          List dataList = data.split(',');
-          setState(() {
-            if(dataList.length>3){
-              FSList.add({
-                "title": s,
-                "money": dataList[1] ,
-                "money2": dataList[2] ,
-                "imagepath": dataList[0],
-                "state":dataList[3]
-              });
-            }else {
-              FSList.add({
-                "title": s,
-                "money": dataList[1] ,
-                "money2": dataList[2] ,
-                "imagepath": dataList[0],
-                "state":'0'
-              });
-            }
-
-          });
-        }
       }
     }
-    setState(() {
-//      FSListlength = FSList.length;
-    });
-    print(FSList);
-    //保存该货号的相关信息
+
   }
 
   @override
@@ -107,38 +95,96 @@ class ReportList_view extends State<ReportListPage>
     // TODO: implement build
     super.build(context);
 
-    return CustomScrollView(physics: ScrollPhysics(), slivers: <Widget>[
-      FSBool
-      ? SliverToBoxAdapter(
-          child: Center(
-          child: Text("正在加载！", style: TextStyle(fontSize: 16)),
-        ))
-      : FSList.length > 0
-          ? SliverList(
-              delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
-                return GestureDetector(
-                  child: slidable_card(
-                    FSList[index],
-                    index,
+    return Stack(children: <Widget>[
+      Scaffold(
+          appBar: zfv_Appbar_topback(
+            title: "款号",
+//        "进货发货",
+//        titleleft: 40,
+//        padding: EdgeInsets.only(left: 10, right: 10),
+            rightw: GestureDetector(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Icon(Icons.add_circle, color: Colors.white),
+                  Container(
+                    width: 5,
                   ),
-                  onTap: () {
-                    //设置要展示的图片
-                    ReportAddPage_PicPath = FSList[index]['imagepath'];
-                    Navigator.push(
-                        context,
-                        new MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                                ReportInfoPage(huohao: FSList[index]['title'])));
-                  },
-                );
+                  Text(
+                    "新增",
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  )
+                ],
+              ),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    new MaterialPageRoute(
+                        builder: (BuildContext context) => ReportAddPage()));
               },
-              childCount: FSList.length,
-            ))
-          : SliverToBoxAdapter(
-              child: Center(
-                child: Text("暂无数据！", style: TextStyle(fontSize: 16)),
+            ),
+            childheight: 50,
+            child: Container(
+              height: 50,
+              child: search_filter(),
+            ),
+          ),
+          body: CustomScrollView(physics: ScrollPhysics(), slivers: <Widget>[
+            FSBool
+                ? SliverToBoxAdapter(
+                    child: Center(
+                    child: Text("正在加载！", style: TextStyle(fontSize: 16)),
+                  ))
+                : FSList.length > 0
+                    ? SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                        (BuildContext context, int index) {
+                          return GestureDetector(
+                            child: slidable_card(
+                              FSList[index],
+                              index,
+                            ),
+                            onTap: () {
+
+                              tanchuang(FSList[index]['PicPath']);
+                              //设置要展示的图片
+//                              ReportAddPage_PicPath =
+//                                  FSList[index]['imagepath'];
+//                              Navigator.push(
+//                                  context,
+//                                  new MaterialPageRoute(
+//                                      builder: (BuildContext context) =>
+//                                          ReportInfoPage(
+//                                              huohao: FSList[index]['title'])));
+                            },
+                          );
+                        },
+                        childCount: FSList.length,
+                      ))
+                    : SliverToBoxAdapter(
+                        child: Center(
+                          child: Text("暂无数据！", style: TextStyle(fontSize: 16)),
+                        ),
+                      )
+          ])),
+      screen
+          ? Container(
+              child: new Opacity(
+                  opacity: 0.8,
+                  child: new Container(
+                      decoration: new BoxDecoration(
+                          // borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20),bottomRight: Radius.circular(20)),
+                          color: Color(0xffffffff)))))
+          : Container(),
+      screen
+          ? Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Container(
+                width: MediaQuery.of(context).size.width,
+                child: search_dialog(),
               ),
             )
+          : Container()
     ]);
 
 //    return Container(
@@ -167,6 +213,24 @@ class ReportList_view extends State<ReportListPage>
 //    );
   }
 
+  //弹出大图
+  tanchuang(String imagepath){
+    showDialog(context:context,
+        child:Material(
+          type: MaterialType.transparency,
+          child: GestureDetector(
+            child: Photo(url: File(imagepath)),
+//              Image.file(
+//              File(imagepath),
+//              fit: BoxFit.contain,
+//            ),
+            onTap: (){
+              Navigator.pop(context);
+            },
+          ),
+        ));
+  }
+
   SlidableController slidableController = new SlidableController();
 
   Widget slidable_card(
@@ -179,7 +243,7 @@ class ReportList_view extends State<ReportListPage>
     return Container(
       margin: EdgeInsets.only(top: 15),
       child: new Slidable(
-        key: new Key(data['title']),
+        key: new Key(data['PPHH']),
         delegate: new SlidableBehindDelegate(),
         actionExtentRatio: 0.22,
         controller: slidableController,
@@ -194,43 +258,58 @@ class ReportList_view extends State<ReportListPage>
 //        ),
         closeOnScroll: true,
         secondaryActions: <Widget>[
-//          new Container(
-//            child: Column(
-//              children: <Widget>[
-//                Expanded(
-//                  child: Container(),
-//                  flex: 1,
-//                ),
-//                Container(height: 56,width:56,
-//                  margin: EdgeInsets.only(left: 8),
-//                  child: Icon(Icons.refresh,color: Colors.blue,size: 32,),
-//                  decoration: new BoxDecoration(
-//                    color: Color(0xffffffff),
-//                    borderRadius: BorderRadius.all(Radius.circular(50)),
-//                      boxShadow: <BoxShadow>[ //设置阴影
-//                        new BoxShadow(
-//                          color: Color(0xFFBDBDBD), //阴影颜色
-//                          //blurRadius: 8.0,
-//                          offset: Offset(0.0, 3.0),
-//                          // color: Color.fromRGBO(16, 20, 188, 1.0),
-//                          blurRadius: 10.0,
-//                          spreadRadius: -3.0, //阴影大小
-//                        ),]
-//                  ),
-//                ),
-//                Container(height: 10,),
-//                Container(
-//                  child: Text("更新",style: textStyle_label,),),
-//                Expanded(
-//                  child: Container(),
-//                  flex: 1,
-//                ),
-//              ],
-//            ),
-//          ),
+          GestureDetector(
+            child: new Container(
+              color: Colors.transparent,
+              child: Column(
+                children: <Widget>[
+                  Expanded(
+                    child: Container(),
+                    flex: 1,
+                  ),
+                  Container(height: 56,width:56,
+                    margin: EdgeInsets.only(left: 8),
+                    child: Icon(Icons.refresh,color: Colors.blue,size: 32,),
+                    decoration: new BoxDecoration(
+                      color: Color(0xffffffff),
+                      borderRadius: BorderRadius.all(Radius.circular(50)),
+                        boxShadow: <BoxShadow>[ //设置阴影
+                          new BoxShadow(
+                            color: Color(0xFFBDBDBD), //阴影颜色
+                            //blurRadius: 8.0,
+                            offset: Offset(0.0, 3.0),
+                            // color: Color.fromRGBO(16, 20, 188, 1.0),
+                            blurRadius: 10.0,
+                            spreadRadius: -3.0, //阴影大小
+                          ),]
+                    ),
+                  ),
+                  Container(height: 10,),
+                  Container(
+                    child: Text("修改",style: textStyle_label,),),
+                  Expanded(
+                    child: Container(),
+                    flex: 1,
+                  ),
+                ],
+              ),
+            ),
+            onTap: () {
+              //设置要展示的图片
+              ReportAddPage_PicPath =
+                  FSList[index]['PicPath'];
+              Navigator.push(
+                  context,
+                  new MaterialPageRoute(
+                      builder: (BuildContext context) =>
+                          ReportInfoPage(
+                              FS: FSList[index])));
+            },
+          ),
 
           GestureDetector(
             child: new Container(
+              color: Colors.transparent,
               child: Column(
                 children: <Widget>[
                   Expanded(
@@ -279,20 +358,18 @@ class ReportList_view extends State<ReportListPage>
             ),
             onTap: () async {
               setState(() {
-
-                if(data["state"] =='1'){
-                  data["state"] = '0';
-                }else {
-                  data["state"] = '1';
+                if (data["State"] == '1') {
+                  data["State"] = '0';
+                } else {
+                  data["State"] = '1';
                 }
               });
-
-              SharedPreferenceUtil.setString(data['title'],data['imagepath']+","+data['money']+","+data['money2']+","+data["state"]);
-
+              await DbUtils.dbUtils.updateItem(ClothingNumber.fromJson(data),"PPHH",data["PPHH"]);
             },
           ),
           GestureDetector(
             child: new Container(
+              color: Colors.transparent,
               child: Column(
                 children: <Widget>[
                   Expanded(
@@ -343,27 +420,15 @@ class ReportList_view extends State<ReportListPage>
 //              myProvide.RemoveItem(index);
 
               //删除内容，再删除标题
-              bool remove = await SharedPreferenceUtil.remove(data['title']);
-              print("删除" + data['title'] + remove.toString());
+//              bool remove = await SharedPreferenceUtil.remove(data['title']);
+              await DbUtils.dbUtils.deleteItem(ClothingNumber(),key:"PPHH",value: data['PPHH']);
+              print("删除" + data['PPHH']);
               setState(() {
                 FSList.remove(index);
 //                FSListlength -=1;
-              init();
+                init();
               });
 
-              String FS = await SharedPreferenceUtil.getString("所有货号");
-              if(FS != null){
-                //判断当前货号是否有重复的
-                List<String> FSList = FS.split(',');
-                String HH = '';
-                for(String s in FSList){
-                  if(s != data['title']){
-                    HH += s+',';
-                  }
-                }
-                HH = HH.substring(0,HH.length-1);
-                SharedPreferenceUtil.setString("所有货号", HH);
-              }
 
               zce_ShowDialog().zfe_SuccessDialog_show(context, '删除成功！');
             },
@@ -386,7 +451,7 @@ class ReportList_view extends State<ReportListPage>
         children: <Widget>[
           Expanded(
             child: Container(
-              height: 130,
+              height: 150,
               child: Row(
                 children: <Widget>[
                   Column(
@@ -406,18 +471,19 @@ class ReportList_view extends State<ReportListPage>
                     child: Container(
                       padding: EdgeInsets.only(left: 10),
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
                           Container(
                             alignment: Alignment.topLeft,
                             child: Text(
-                              '货号：' + data["title"],
+                              '货号：' + data['PPHH'],
                               style: textStyle_title,
                             ),
                           ),
-                          Expanded(
-                            flex: 1,
-                            child: Container(),
-                          ),
+//                          Expanded(
+//                            flex: 1,
+//                            child: Container(),
+//                          ),
                           Container(
                             alignment: Alignment.topLeft,
                             padding: EdgeInsets.only(top: 8, bottom: 5),
@@ -434,7 +500,7 @@ class ReportList_view extends State<ReportListPage>
                                 Container(
                                   margin: EdgeInsets.only(left: 5),
                                   child: Text(
-                                    '价格：' + data["money"] + ' 元',
+                                    '价格：' + data['JG1'] + ' 元',
                                     style: textStyle_text,
                                   ),
                                 ),
@@ -457,7 +523,7 @@ class ReportList_view extends State<ReportListPage>
                                 Container(
                                   margin: EdgeInsets.only(left: 5),
                                   child: Text(
-                                    '价格：' + data["money2"] + ' 元',
+                                    '价格：' + data['JG2'] + ' 元',
                                     style: textStyle_text,
                                   ),
                                 ),
@@ -465,14 +531,18 @@ class ReportList_view extends State<ReportListPage>
                             ),
                           ),
                           Container(
-                            child: data["state"] == '1' ? Text(
-                              "已售完",
-                              style: TextStyle(
-                                  fontSize: 13, color: Colors.red, fontWeight: FontWeight.w500),
-                            ) : Text(
-                              "",
-                              style: textStyle_text,
-                            ) ,
+                            child: data['State'] == '1'
+                                ? Text(
+                                    "已售完",
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.w500),
+                                  )
+                                : Text(
+                                    "",
+                                    style: textStyle_text,
+                                  ),
                           )
                         ],
                       ),
@@ -490,7 +560,7 @@ class ReportList_view extends State<ReportListPage>
             child: new ClipRRect(
               borderRadius: BorderRadius.all(Radius.circular(3)),
               child: Image.file(
-                File(data['imagepath']),
+                File(data['PicPath']),
                 fit: BoxFit.contain,
               ),
             ),
@@ -521,19 +591,299 @@ class ReportList_view extends State<ReportListPage>
   // TODO: implement wantKeepAlive
   bool get wantKeepAlive => true;
 
-
   @override
-
   void deactivate() {
-
     var bool = ModalRoute.of(context).isCurrent;
 
     if (bool) {
-
       init();
+    }
+  }
+
+  //筛选栏
+  Widget search_filter() {
+    double radius = 30; // 圆角
+    return Container(
+      padding: EdgeInsets.only(left: 10, right: 10, bottom: 12),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.only(left: 10, right: 10),
+              height: 36,
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextField(
+                      focusNode: _commentFocus,
+                      controller: TextEditingController.fromValue(TextEditingValue(
+                        text: PPHH,
+//                          selection: TextSelection.fromPosition(TextPosition(
+//                              affinity: TextAffinity.downstream,
+//                              offset: HH.length))
+                      )),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(color: Colors.transparent)),
+                        //输入内容距离上下左右的距离 ，可通过这个属性来控制 TextField的高度
+                        contentPadding: EdgeInsets.only(left:10,bottom: 10),
+                        fillColor: Colors.transparent,
+                        filled: true,
+                        //            labelText: 'Hello',
+                        // 以下属性可用来去除TextField的边框
+                        disabledBorder: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (String v) {
+                        PPHH = v;
+//                        setState(() {
+//                          HHLength = v.length;
+//                        });
+                      },
+                      onSubmitted: (String r) {
+                        PPHH = r;
+//                        setState(() {
+//                          HHLength = r.length;
+//                        });
+                      },
+                      //按回车时调用
+                      onEditingComplete: (){
+                        _commentFocus.unfocus();
+                        search(PPHH);
+                      },
+                    ),
+                    flex: 1,
+                  ),
+                  PPHH.length > 0 ?GestureDetector(
+                    child: Container(
+                      color: Colors.transparent,
+                      height: 30,
+                      width: 30,
+                      child: Icon(
+                        Icons.cancel,
+                        color: Colors.black38,
+                        size: 20,
+                      ),
+//                        color: Colors.red,
+                    ),
+                    onTap: (){
+                      setState(() {
+                        PPHH = '';
+//                        HHLength = 0;
+                        init();
+                      });
+                    },
+                  ): Container(),
+                  GestureDetector(
+                    child: Container(
+                      color: Colors.transparent,
+                      height: 30,
+                      width: 30,
+                      child: Icon(
+                        Icons.search,
+                        color: Colors.blue,
+                        size: 20,
+                      ),
+//                        color: Colors.red,
+                    ),
+                    onTap: (){
+                      //进行名称查询
+                      _commentFocus.unfocus();
+                      search(PPHH);
+                    },
+                  )
+                ],
+              ),
+              decoration: new BoxDecoration(
+                  color: Color(0xffffffff),
+                  borderRadius: BorderRadius.all(Radius.circular(radius))),
+            ),
+            flex: 1,
+          ),
+          new GestureDetector(
+            child: Container(
+              margin: EdgeInsets.only(left: 10),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                      child: Text("筛选",
+                          style: TextStyle(fontSize: 16, color: Colors.white))),
+                  Container(
+                    child: Icon(
+                      Icons.flash_on,
+                      color: Colors.white,
+                    ),
+                  )
+                ],
+              ),
+            ),
+            onTap: () {
+              //进行名称查询
+              _commentFocus.unfocus();
+              search(PPHH);
+
+              //暂时不弹出具体的筛选页面
+//              setState(() {
+//                screen = !screen;
+//              });
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  //货号正则筛选功能
+  Future<void> search(String screens) async {
+
+    RegExp regExp = new RegExp('('+screens+')');
+
+
+    List<ClothingNumber> listClothingNumber =await DbUtils.dbUtils.queryItems(ClothingNumber());
+    setState(() {
+      FSList = [];
+      FSBool = false;
+    });
+    List<Map> list = [];
+    for (ClothingNumber cn in listClothingNumber) {
+      Map map = cn.toJson();
+      setState(() {
+        list.add(map);
+      });
 
     }
 
+//    List HHlist = [];
+    for(Map hhs in list){
+      bool isABC = regExp.hasMatch(hhs['PPHH']);
+      if(isABC){
+        FSList.add(hhs);
+      }
+    }
+
+//    if(HHlist.length == 0){
+//      return;
+//    }
+//
+//    print(HHlist);
+//    for (String title in HHlist) {
+//      String data = await SharedPreferenceUtil.getString(title);
+//      if (data != null && data.contains(',')) {
+//        List dataList = data.split(',');
+//        setState(() {
+//            FSList.add({
+//              "title": title,
+//              "huohao":dataList[0],
+//              "pinpai":dataList[1],
+//              "imagepath": dataList[2],
+//              "money": dataList[3],
+//              "money2": dataList[4],
+//              "state": dataList[5]
+//            });
+//
+//        });
+//      }
+//    }
+
+
   }
 
+  //筛选弹窗
+  Widget search_dialog() {
+    return Container(
+      margin: EdgeInsets.only(top: 100),
+      child: Column(
+        children: <Widget>[
+          new GestureDetector(
+            child: Container(
+              child: Container(
+                height: 40,
+                width: 40,
+                alignment: Alignment.topCenter,
+                decoration: new BoxDecoration(
+                    color: Color(0xff6B6B6B),
+                    borderRadius: BorderRadius.all(Radius.circular(30))),
+                child: Center(
+                    child: Icon(
+                  Icons.close,
+                  color: Colors.white,
+                )),
+              ),
+            ),
+            onTap: () {
+              setState(() {
+                screen = !screen;
+              });
+//              myProvide.initparam();
+//              myProvide.showParam(false);
+            },
+          ),
+          Expanded(
+            flex: 1,
+            child: Container(),
+          ),
+          GestureDetector(
+            child: Container(
+              padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
+              child: Text(
+                "日期选择",
+                style: TextStyle(color: Colors.white, fontSize: 15),
+              ),
+              decoration: new BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.all(Radius.circular(2))),
+            ),
+            onTap: () {
+              // 调用函数打开
+//              showDatePicker(
+//                context: context,
+//                initialDate: new DateTime.now(),
+//                firstDate: new DateTime.now().subtract(new Duration(days: 30)), // 减 30 天
+//                lastDate: new DateTime.now().add(new Duration(days: 30)),       // 加 30 天
+//              ).then((DateTime val) {
+////                myProvide.changeDate(val.toString()); // 2018-07-12 00:00:00.000
+//              }).catchError((err) {
+//                print(err);
+//              });
+            },
+          ),
+          Container(
+            height: 20,
+          ),
+          Container(
+            padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
+            color: Color(0xffeeeeee),
+//            child: Text(myProvide.selectDate==null?"暂未选择日期":myProvide.selectDate,style: TextStyle(fontSize: 16)),
+          ),
+          Expanded(
+            flex: 1,
+            child: Container(),
+          ),
+          GestureDetector(
+            child: Container(
+              padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
+              child: Text(
+                "确认",
+                style: TextStyle(color: Colors.white, fontSize: 15),
+              ),
+              decoration: new BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.all(Radius.circular(2))),
+            ),
+            onTap: () {
+//              myProvide.selectDataListby_param();
+//              myProvide.showParam(false);
+            },
+          ),
+          Expanded(
+            flex: 1,
+            child: Container(),
+          ),
+        ],
+      ),
+    );
+  }
 }
