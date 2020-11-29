@@ -234,12 +234,9 @@ class _ReportAddPage extends State<ReportAddPage> {
       return;
     }
 
-    Uint8List  u8l = await File(PicPath).readAsBytes();
-
-    String s = new String.fromCharCodes(u8l);
 
     //保存的照片地址
-    String newPicPath = await ReadFile.getAndSetPicFile2(PPHH.trim(),s);
+    String newPicPath = await ReadFile.getAndSetPicFile2(PPHH.trim(),PicPath);
 
     //    Uint8List outputAsUint8List = new Uint8List.fromList(s.codeUnits);
 
@@ -247,7 +244,7 @@ class _ReportAddPage extends State<ReportAddPage> {
         PPHH: PPHH.trim(),
         PinPai: PinPai.trim(),
         HuoHao: HuoHao.trim(),
-//        PicPath: newPicPath,
+        PicPath: newPicPath,
         JG1: JG1,
         JG2: JG2,
         State: State);

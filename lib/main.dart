@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_create/page/report/ClothingNumber.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_create/page/topic/topic_create_page.dart';
 import 'package:flutter_create/util/DbUtils.dart';
 import 'package:flutter_create/util/PictureSizeChange.dart';
 import 'package:flutter_create/util/SharedPreferenceUtil.dart';
+import 'package:flutter_create/util/Utils.dart';
 import 'package:flutter_create/zcui/event/dialog/zce_ShowDialog.dart';
 import 'util/ReadFile.dart';
 import 'page/topic/topic_list_page.dart';
@@ -26,15 +28,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: '服装款式',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: IndexPage(),
@@ -59,6 +52,7 @@ class _IndexPage_view extends State<IndexPage>{
     print(123);
     _initFluwx();
 
+
   }
 
   _initFluwx() async {
@@ -72,6 +66,8 @@ class _IndexPage_view extends State<IndexPage>{
 
     //初始化数据库
     await DbUtils.getInstance().openDb("默认");
+    //初始化基础参数
+    await Utils.init();
 
   }
 
@@ -209,35 +205,88 @@ class _IndexPage_view extends State<IndexPage>{
 //                              MyHomePage()));
                     },
                   ),
-//                  GestureDetector(
-//                    child: Container(width: 70,height: 70,
-//                      margin: EdgeInsets.only(left: 25),
-//                      child: Center(child: Text("清空数据",style: TextStyle(color: Color(0xffffffff),fontSize: 15),)),
-//                      decoration: new BoxDecoration(
-//                        color: Color(0xff4AACF8),
-//                        borderRadius: BorderRadius.all(Radius.circular(50)),
-//                        boxShadow: <BoxShadow>[ //设置阴影
-//                          new BoxShadow(
-//                            color: Color(0xFF888888), //阴影颜色
-//                            //blurRadius: 8.0,
-//                            offset: Offset(0.0, 3.0),
-//                            // color: Color.fromRGBO(16, 20, 188, 1.0),
-//                            blurRadius: 7.0,
-//                            spreadRadius: -3.0, //阴影大小
-//                          ),],
-//                      ),),
-//                    onTap: () async {
-//                      await DbUtils.dbUtils.deleteItem(ClothingNumber());
-////                      _readContent();
-////                      Navigator.push(context, new MaterialPageRoute(
-////                          builder: (BuildContext context) =>
-////                              MyHomePage()));
-//                    },
-//                  ),
+                  GestureDetector(
+                    child: Container(width: 70,height: 70,
+                      margin: EdgeInsets.only(left: 25),
+                      child: Center(child: Text("数据转存",style: TextStyle(color: Color(0xffffffff),fontSize: 15),)),
+                      decoration: new BoxDecoration(
+                        color: Color(0xff4AACF8),
+                        borderRadius: BorderRadius.all(Radius.circular(50)),
+                        boxShadow: <BoxShadow>[ //设置阴影
+                          new BoxShadow(
+                            color: Color(0xFF888888), //阴影颜色
+                            //blurRadius: 8.0,
+                            offset: Offset(0.0, 3.0),
+                            // color: Color.fromRGBO(16, 20, 188, 1.0),
+                            blurRadius: 7.0,
+                            spreadRadius: -3.0, //阴影大小
+                          ),],
+                      ),),
+                    onTap: () async {
+
+                      //读取数据
+                      List<ClothingNumber> listClothingNumber = [];
+                      listClothingNumber =await DbUtils.dbUtils.queryItems(ClothingNumber());
+
+                      if(listClothingNumber != null){
+                        for (int i = 0 ; i< listClothingNumber.length ; i++) {
+                          ClothingNumber cn =listClothingNumber[i];
+                          Map map = cn.toJson2();
+
+
+                          //判断转存的数据是否是本地类型的
+                          RegExp regExp = new RegExp('('+Utils.Path+')');
+                            bool isABC = regExp.hasMatch(map['PicPath']);
+                            if(isABC){
+                              continue;
+                            }
+
+
+                          print('转存ing...');
+                          //保存的照片地址
+                          String newPicPath = await ReadFile.getAndSetPicFile2(map['PPHH'].trim(),map['PicPath']);
+                          map['PicPath'] = newPicPath;
+//                          map['Pic'] = '01231233435345';
+
+                          ClothingNumber clothingNumber = ClothingNumber.fromJson(map);
+                          print(map);
+                          await DbUtils.dbUtils.deleteItem(clothingNumber,key:"PPHH",value:map['PPHH']);
+                          await DbUtils.dbUtils.insertItem(clothingNumber);
+
+                        }
+                      }
+                      zce_ShowDialog().zfe_SuccessDialog_show(context, '转存成功！');
+
+                    },
+                  ),
                 ],
               ),
             ),
-
+//            GestureDetector(
+//              child: Container(width: 70,height: 70,
+//                margin: EdgeInsets.only(left: 25),
+//                child: Center(child: Text("数据删除",style: TextStyle(color: Color(0xffffffff),fontSize: 15),)),
+//                decoration: new BoxDecoration(
+//                  color: Color(0xff4AACF8),
+//                  borderRadius: BorderRadius.all(Radius.circular(50)),
+//                  boxShadow: <BoxShadow>[ //设置阴影
+//                    new BoxShadow(
+//                      color: Color(0xFF888888), //阴影颜色
+//                      //blurRadius: 8.0,
+//                      offset: Offset(0.0, 3.0),
+//                      // color: Color.fromRGBO(16, 20, 188, 1.0),
+//                      blurRadius: 7.0,
+//                      spreadRadius: -3.0, //阴影大小
+//                    ),],
+//                ),),
+//              onTap: () async {
+//                //清空数据
+//                      await DbUtils.dbUtils.deleteItem(ClothingNumber());
+//                //旧数据转存
+//                //读取数据
+//
+//              },
+//            ),
           ],
         ),
       ),
@@ -246,6 +295,15 @@ class _IndexPage_view extends State<IndexPage>{
 
   void _saveValue() async {
     try {
+
+      List<ClothingNumber> listClothingNumber = [];
+      listClothingNumber =await DbUtils.dbUtils.queryItems(ClothingNumber());
+
+      if(listClothingNumber == null || listClothingNumber.length <1 ){
+        zce_ShowDialog().zfe_SuccessDialog_No_show(context, '没有数据可以保存！');
+        return;
+      }
+
       File f = await ReadFile.getLocalFile();
 
       bool fExists = await f.exists();
@@ -255,8 +313,7 @@ class _IndexPage_view extends State<IndexPage>{
       IOSink slink = f.openWrite(mode: FileMode.append);
 
 
-      List<ClothingNumber> listClothingNumber = [];
-      listClothingNumber =await DbUtils.dbUtils.queryItems(ClothingNumber());
+
 
       slink.write('[');
       if(listClothingNumber != null){

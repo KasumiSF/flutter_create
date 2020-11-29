@@ -16,7 +16,7 @@ class ClothingNumber extends DbBaseBean {
   String PicPath = "";
 
   //图片
-  String Pic = '';
+//  String Pic = '';
 
   //价格1
   String JG1 = "";
@@ -40,7 +40,7 @@ class ClothingNumber extends DbBaseBean {
         this.PinPai,
         this.HuoHao,
         this.PicPath,
-        this.Pic,
+//        this.Pic,
         this.JG1,
         this.JG2,
         this.State});
@@ -48,22 +48,22 @@ class ClothingNumber extends DbBaseBean {
 
 
   ClothingNumber.fromJson(Map<String, dynamic> json) {
-    PPHH = json['PPHH'];
-    PinPai = json['PinPai'];
-    HuoHao = json['HuoHao'];
+    PPHH = json['PPHH'].trim();
+    PinPai = json['PinPai'].trim();
+    HuoHao = json['HuoHao'].trim();
     PicPath = json['PicPath'];
-    Pic = json['Pic'];
+//    Pic = json['Pic'];
     JG1 = json['JG1'];
     JG2 = json['JG2'];
     State = json['State'];
   }
 
   ClothingNumber.fromSql(Map<String, dynamic> json) {
-    PPHH = json['PPHH'];
-    PinPai = json['PinPai'];
-    HuoHao = json['HuoHao'];
+    PPHH = json['PPHH'].trim();
+    PinPai = json['PinPai'].trim();
+    HuoHao = json['HuoHao'].trim();
     PicPath = json['PicPath'];
-    Pic = json['Pic'];
+//    Pic = json['Pic'];
     JG1 = json['JG1'];
     JG2 = json['JG2'];
     State = json['State'];
@@ -72,24 +72,24 @@ class ClothingNumber extends DbBaseBean {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
 
-    data['PPHH'] = this.PPHH;
-    data['PinPai'] = this.PinPai;
-    data['HuoHao'] = this.HuoHao;
+    data['PPHH'] = this.PPHH.trim();
+    data['PinPai'] = this.PinPai.trim();
+    data['HuoHao'] = this.HuoHao.trim();
     data['PicPath'] = this.PicPath;
     data['JG1'] = this.JG1;
     data['JG2'] = this.JG2;
     data['State'] = this.State;
-    data['Pic'] = this.Pic;
+//    data['Pic'] = this.Pic;
     return data;
   }
 
   Map<String, dynamic> toJson2() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
 
-    data['PPHH'] = this.PPHH;
-    data['PinPai'] = this.PinPai;
-    data['HuoHao'] = this.HuoHao;
-//    data['PicPath'] = this.PicPath;
+    data['PPHH'] = this.PPHH.trim();
+    data['PinPai'] = this.PinPai.trim();
+    data['HuoHao'] = this.HuoHao.trim();
+    data['PicPath'] = this.PicPath;
     data['JG1'] = this.JG1;
     data['JG2'] = this.JG2;
     data['State'] = this.State;

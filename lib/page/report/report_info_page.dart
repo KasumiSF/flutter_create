@@ -116,7 +116,7 @@ class _ReportInfoPage extends State<ReportInfoPage> {
             }
             PPHH = PinPai+HuoHao;
 
-            addData(widget.FS['PPHH'],PPHH, PinPai, HuoHao, ReportAddPage_PicPath, JG1, JG2, state);
+            addData(widget.FS['PPHH'],PPHH, PinPai, HuoHao, ReportAddPage_PicPath,widget.FS['PicPath'], JG1, JG2, state);
 //            Navigator.maybePop(context);
           },
         ),
@@ -269,23 +269,27 @@ class _ReportInfoPage extends State<ReportInfoPage> {
     );
   }
 
-  Future<void> addData(oldPPHH, newPPHH, PinPai, HuoHao, PicPath, JG1, JG2, State) async {
+  //传入旧品牌货号，新品牌货号，品牌，货号，图片地址，旧图片地址，价格1，价格2，状态
+  Future<void> addData(oldPPHH, newPPHH, PinPai, HuoHao, PicPath,oldPicPath, JG1, JG2, State) async {
 
-    Uint8List  u8l = await File(PicPath).readAsBytes();
 
-    String s = new String.fromCharCodes(u8l);
 
-    String newPicPath = await ReadFile.getAndSetPicFile2(newPPHH.trim(),s);
+    //先创建新照片
+    String newPicPath = await ReadFile.getAndSetPicFile2(newPPHH.trim(),PicPath);
+    //再删除旧图片
+    //TODO:如果需要删除旧照片再解开注释
+//    if(newPicPath != oldPicPath){
+//      ReadFile.deleteFile(oldPicPath);
+//    }
     ClothingNumber clothingNumber = ClothingNumber(
         PPHH: newPPHH.trim(),
         PinPai: PinPai.trim(),
         HuoHao: HuoHao.trim(),
-//        PicPath: PicPath,
+        PicPath: newPicPath,
 //        Pic: s,
         JG1: JG1,
         JG2: JG2,
         State: State);
-
     /**先判断是否修改了货号,如果没有,则允许修改
      * 如果修改了货号,货号还存在,则不允许修改
      */
@@ -302,7 +306,7 @@ class _ReportInfoPage extends State<ReportInfoPage> {
 
         await DbUtils.dbUtils.insertItem(clothingNumber);
         await DbUtils.dbUtils.deleteItem(ClothingNumber(),key:"PPHH",value: oldPPHH);
-        ReadFile.deleteFile(oldPPHH);
+
       }
     }
 

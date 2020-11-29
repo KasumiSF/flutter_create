@@ -45,7 +45,7 @@ class DbUtils {
                   ', PinPai TEXT'+
                   ', HuoHao TEXT'+
                   ', PicPath TEXT'+
-                  ', Pic TEXT'+
+//                  ', Pic TEXT'+
                   ', JG1 TEXT'+
                   ', JG2 TEXT'+
                   ', State Text'+
@@ -65,7 +65,7 @@ class DbUtils {
                   ', PinPai TEXT'+
                   ', HuoHao TEXT'+
                   ', PicPath TEXT'+
-                  ', Pic TEXT'+
+//                  ', Pic TEXT'+
                   ', JG1 TEXT'+
                   ', JG2 TEXT'+
                   ', State Text'+

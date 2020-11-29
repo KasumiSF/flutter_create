@@ -84,7 +84,12 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
       for (int i = 0 ; i< listClothingNumber.length ; i++) {
         ClothingNumber cn =listClothingNumber[i];
         Map map = cn.toJson();
-        Image image = await ReadFile.getPicFile(map['PPHH'] );
+        Image image = await ReadFile.getPicFile(map['PicPath'] );
+//        Image image = Image.file(File(map['PicPath'] ),
+//          fit: BoxFit.contain,
+//        );
+//        Image image = Image.file(map['PicPath']);
+
         map['PicImage'] = image;
         setState(() {
           FSList.add(map);
@@ -436,8 +441,8 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
 //                FSListlength -=1;
                 init();
               });
-              //删除本地文件
-              ReadFile.deleteFile(data['PPHH']);
+              //删除本地图片
+              ReadFile.deleteFile(data['PicPath']);
               zce_ShowDialog().zfe_SuccessDialog_show(context, '删除成功！');
             },
           ),
@@ -744,7 +749,7 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
   //货号正则筛选功能
   Future<void> search(String screens) async {
 
-    RegExp regExp = new RegExp('('+screens+')');
+
 
 
     List<ClothingNumber> listClothingNumber =await DbUtils.dbUtils.queryItems(ClothingNumber());
@@ -760,12 +765,15 @@ class ReportList_view extends State<ReportListPage> with AutomaticKeepAliveClien
       });
 
     }
-
+    RegExp regExp = new RegExp('('+screens+')');
 //    List HHlist = [];
     for(Map hhs in list){
       bool isABC = regExp.hasMatch(hhs['PPHH']);
       if(isABC){
-        Image image = await ReadFile.getPicFile(hhs['PPHH'] );
+        Image image = await ReadFile.getPicFile(hhs['PicPath'] );
+//        Image image = Image.file(File(hhs['PicPath'] ),
+//          fit: BoxFit.contain,
+//        );
         hhs['PicImage'] = image;
         FSList.add(hhs);
       }
