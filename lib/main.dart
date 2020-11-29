@@ -12,6 +12,7 @@ import 'package:flutter_create/util/PictureSizeChange.dart';
 import 'package:flutter_create/util/SharedPreferenceUtil.dart';
 import 'package:flutter_create/util/Utils.dart';
 import 'package:flutter_create/zcui/event/dialog/zce_ShowDialog.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'util/ReadFile.dart';
 import 'page/topic/topic_list_page.dart';
 import 'page/report/report_index_page.dart';
@@ -44,6 +45,9 @@ class IndexPage extends StatefulWidget{
 }
 
 class _IndexPage_view extends State<IndexPage>{
+
+  PermissionStatus _permissionStatus;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -51,7 +55,7 @@ class _IndexPage_view extends State<IndexPage>{
 //    requestPermission();
     print(123);
     _initFluwx();
-
+    checkPermissionStatus();
 
   }
 
@@ -70,6 +74,39 @@ class _IndexPage_view extends State<IndexPage>{
     await Utils.init();
 
   }
+
+  /**
+   * 检查是否有相关权限
+   */
+  void checkPermissionStatus() {
+    final Future<PermissionStatus> statusFuture =
+    PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
+
+    statusFuture.then((PermissionStatus status) {
+      setState(() {
+        _permissionStatus = status;
+      });
+      requestPermission();
+    });
+  }
+
+  /**
+   * 请求系统权限，让用户确认授权
+   */
+  Future requestPermission() async {
+    List<PermissionGroup> permissions = <PermissionGroup>[
+      PermissionGroup.storage
+    ];
+    Map<PermissionGroup, PermissionStatus> permissionMap =
+    await PermissionHandler().requestPermissions(permissions);
+
+    setState(() {
+      _permissionStatus = permissionMap[PermissionGroup.storage];
+    });
+  }
+
+
+
 
   Future<void> initPlatformState() async {}
 

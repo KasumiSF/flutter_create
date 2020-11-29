@@ -38,6 +38,7 @@ dependencies:
 
   path_provider: ^1.6.24                #应用目录
 #  permission_handler: ^4.1.0          #获取权限
+  permission_handler: ^3.2.0
 #  permission_handler: ^5.0.0
 
   json_annotation: ^3.0.0
