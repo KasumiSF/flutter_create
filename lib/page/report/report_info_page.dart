@@ -115,7 +115,7 @@ class _ReportInfoPage extends State<ReportInfoPage> {
               zce_Toast.toast(context, "必须输入品牌");
             }
             PPHH = PinPai+HuoHao;
-
+            print(widget.FS['PPHH']+'.....'+PPHH+'.....'+ PinPai+'.....'+ HuoHao+'.....'+ ReportAddPage_PicPath+'.....'+widget.FS['PicPath']+'.....'+ JG1+'.....'+ JG2+'.....'+ state);
             addData(widget.FS['PPHH'],PPHH, PinPai, HuoHao, ReportAddPage_PicPath,widget.FS['PicPath'], JG1, JG2, state);
 //            Navigator.maybePop(context);
           },
@@ -272,15 +272,19 @@ class _ReportInfoPage extends State<ReportInfoPage> {
   //传入旧品牌货号，新品牌货号，品牌，货号，图片地址，旧图片地址，价格1，价格2，状态
   Future<void> addData(oldPPHH, newPPHH, PinPai, HuoHao, PicPath,oldPicPath, JG1, JG2, State) async {
 
-
-
-    //先创建新照片
-    String newPicPath = await ReadFile.getAndSetPicFile2(newPPHH.trim(),PicPath);
-    //再删除旧图片
-    //TODO:如果需要删除旧照片再解开注释
+    String newPicPath = '';
+    if(PicPath.length == 0){
+      newPicPath = oldPicPath;
+    }else{
+      //先创建新照片
+      newPicPath = await ReadFile.getAndSetPicFile2(newPPHH.trim(),PicPath);
+      //再删除旧图片
+      //TODO:如果需要删除旧照片再解开注释
 //    if(newPicPath != oldPicPath){
 //      ReadFile.deleteFile(oldPicPath);
 //    }
+    }
+
     ClothingNumber clothingNumber = ClothingNumber(
         PPHH: newPPHH.trim(),
         PinPai: PinPai.trim(),
